@@ -11,17 +11,17 @@
     lanchmethod：重复发起执行的方法名；必须设置项；
     shutdownmethod：服务停止时执行的方法名；必须设置项；
     lanchinterval：重复执行lanchMethod时间间隔；必须设置项；
-    errortryinterval：发生错误后，再次执行的时间间隔，以分钟，必须设置项；
-    missionstatus:状态，Running正常运行，Stop停止，缺省为Running
+    errortryinterval：发生错误后，再次执行的时间间隔，秒，必须设置项；
+    missionstatus:状态，1正常运行，2停止，缺省为1
     desc:解释字段，可以不填
   --> 
 <conf runingstatus="test">
   <running  errormonitorinterval="5">
-    <Mission name="test1" missionstatus="Running1" location="test1.dll" classname="Test1.Class1" lanchmethod="Launch"  shutdownmethod="" lanchinterval="1" errortryinterval="60" desc="Test1" />
-    <Mission name="test2" missionstatus="Stop" location="test2.dll" classname="Test2.Class1" lanchmethod="Launch"  shutdownmethod="" lanchinterval="1" errortryinterval="60" desc="Test2"  />
+    <Mission name="test1" missionstatus="Running" location="test1.dll" classname="Test1.Class1" launchmethod="Launch"  shutdownmethod="" launchinterval="1" errortryinterval="60" desc="Test1" />
+    <Mission name="test2" missionstatus="Running" location="test2.dll" classname="Test2.Class1" launchmethod="Launch"  shutdownmethod="" launchinterval="1" errortryinterval="60" desc="Test2"  />
   </running>  
   <test errormonitorinterval="5">
-    <Mission name="test1" missionstatus="Running" location="test1.dll" classname="Test1.Class1" lanchmethod="Launch"  shutdownmethod="" lanchinterval="1" errortryinterval="60" desc="Test1" />
-    <Mission name="test2" missionstatus="Running" location="test2.dll" classname="Test2.Class1" lanchmethod="Launch"  shutdownmethod="" lanchinterval="1" errortryinterval="60" desc="Test2"  />
+    <Mission name="1111111" missionstatus="Running" location="test1.dll" classname="Test1.Class1" launchmethod="Launch1"  shutdownmethod="" launchinterval="1" errortryinterval="100" desc="sdgsdfgsdfg" />
+    <Mission name="2222222" missionstatus="Running" location="test2.dll" classname="Test2.Class2" launchmethod="Launch2"  shutdownmethod="" launchinterval="1" errortryinterval="200" desc="sdgdsgsdfgsdf"  />
   </test>
 </conf>

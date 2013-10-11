@@ -6,9 +6,11 @@ using System.Xml;
 
 namespace StrongDispatcherModel
 {
+    /// <summary>
+    /// xml文件分析工具
+    /// </summary>
     internal class XMLTools
-    { 
-
+    {
         /// <summary>
         /// 
         /// </summary>
@@ -43,26 +45,7 @@ namespace StrongDispatcherModel
                 throw new Exception(string.Format("配置文件格式错误，找不到节点{0}！", nodeName));
             }
             return rt;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="attName"></param>
-        /// <param name="raiseErr"></param>
-        /// <returns></returns>
-        internal static int GetXmlNodeAttributesToInt(XmlNode node, string attName, bool raiseErr)
-        {
-            int result = 0;
-            string strResult = XMLTools.GetXmlNodeAttributes(node, attName, raiseErr);
-            if (raiseErr && !int.TryParse(strResult, out result))
-            {
-                throw new Exception(string.Format("配置文件格式错误，找不到属性{0},或者属性{0}不是int格式！", attName));
-            }
-
-            return result;
-        }        
+        }             
 
         /// <summary>
         /// 获取xml节点属性值
@@ -89,5 +72,24 @@ namespace StrongDispatcherModel
             }
             return strResult;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="attName"></param>
+        /// <param name="raiseErr"></param>
+        /// <returns></returns>
+        internal static int GetXmlNodeAttributesToInt(XmlNode node, string attName, bool raiseErr)
+        {
+            int result = 0;
+            string strResult = XMLTools.GetXmlNodeAttributes(node, attName, raiseErr);
+            if (raiseErr && !int.TryParse(strResult, out result))
+            {
+                throw new Exception(string.Format("配置文件格式错误，找不到属性{0},或者属性{0}不是int格式！", attName));
+            }
+
+            return result;
+        }  
     }
 }

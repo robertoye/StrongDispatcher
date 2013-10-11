@@ -2,11 +2,8 @@
  * 任务调度 
  * 
  * 
- * 任务模型
- * 
- * 
- */ 
-
+ * 任务模型 
+ */
 
 using System;
 using System.Collections.Generic;
@@ -43,12 +40,11 @@ namespace StrongDispatcherModel
                 string runningStatus = XMLTools.GetXmlNodeAttributes(rt, "runingstatus", true);
                 XmlNode runningNode = XMLTools.FindXmlNode(rt, runningStatus, true);
 
-                //守护线程
+                //守护线程 --守护线程功能取消
                 //守护线程错误重启时间间隔
-                int errormonitorinterval = XMLTools.GetXmlNodeAttributesToInt(runningNode, "errormonitorinterval", true);
-                Mission daemon = new Mission(eTaskType.Daemon, "Daemon", "", "", "", "", errormonitorinterval, 0, eMissionStatus.Running);
-                daemon.DllExists = true;
-                _list.Add(daemon);
+                //int errormonitorinterval = XMLTools.GetXmlNodeAttributesToInt(runningNode, "errormonitorinterval", true);
+                //Mission daemon = new Mission(eTaskType.Daemon, "Daemon", "", "", "", "", errormonitorinterval * 1000, 0, eMissionStatus.Running);                
+                //_list.Add(daemon);
 
                 XmlNodeList missionNode = runningNode.ChildNodes;
                 foreach (XmlNode node in missionNode)
@@ -68,39 +64,40 @@ namespace StrongDispatcherModel
             }
             return _list;
         }
+
         #region --私有变量
 
         private eTaskType _TaskType;
         private string _MissionName;
         private string _DllLocation;
         private string _ClassName;
-        private string _LanchMethod;
+        private string _LaunchMethod;
         private string _ShutDownMethod;
-        private int _LanchInterval;
+        private int _LaunchInterval;
         private int _ErrorTryInterval;
-        private eMissionStatus _MissionStatus;
-        private bool _DllExists;
+        private eMissionStatus _MissionStatus;        
 
         private DateTime _NextTryTime;
         private Thread _MissionOwner;
-        private eTaskStatus _MissionOwnerStatus;
+        private ThreadState _MissionOwnerStatus;
 
         #endregion --私有变量
 
         #region --私有构建方法
 
-        private Mission(eTaskType taskType, string missionName, string dllLocation, string className, string lanchMethod,
-                string shutDownMethod, int lanchInterval, int _errorTryInterval, eMissionStatus missionStatus)
+        private Mission(eTaskType taskType, string missionName, string dllLocation, string className, string launchMethod,
+                string shutDownMethod, int launchInterval, int _errorTryInterval, eMissionStatus missionStatus)
         {
             _TaskType = taskType;
             _MissionName = missionName;
-            _DllLocation = dllLocation;
+            _DllLocation = string.Format(@"{0}{1}", System.AppDomain.CurrentDomain.BaseDirectory, dllLocation); ;
             _ClassName = className;
-            _LanchMethod = lanchMethod;
+            _LaunchMethod = launchMethod;
             _ShutDownMethod = shutDownMethod;
-            _LanchInterval = lanchInterval;
+            _LaunchInterval = launchInterval;
             _ErrorTryInterval = _errorTryInterval;
             _MissionStatus = missionStatus;
+            _MissionOwnerStatus = ThreadState.Unstarted;
         }
 
         /// <summary>
@@ -113,21 +110,22 @@ namespace StrongDispatcherModel
         {
             string location = XMLTools.GetXmlNodeAttributes(node, "location", true);
             string className = XMLTools.GetXmlNodeAttributes(node, "classname", true);
-            string lanchMethod = XMLTools.GetXmlNodeAttributes(node, "lanchmethod", true);
+            string launchMethod = XMLTools.GetXmlNodeAttributes(node, "launchmethod", true);
             string shutDownMethod = XMLTools.GetXmlNodeAttributes(node, "shutdownmethod", true);
-            int lanchInterval = XMLTools.GetXmlNodeAttributesToInt(node, "lanchinterval", true);
+            int launchInterval = XMLTools.GetXmlNodeAttributesToInt(node, "launchinterval", true);
             int errorTryInterval = XMLTools.GetXmlNodeAttributesToInt(node, "errortryinterval", true);
             string missiondstatus = XMLTools.GetXmlNodeAttributes(node, "missionstatus", false);
 
             _TaskType = eTaskType.Normal;
             _MissionName = missionName;
-            _DllLocation = location;
+            _DllLocation = string.Format(@"{0}{1}", System.AppDomain.CurrentDomain.BaseDirectory, location);
             _ClassName = className;
-            _LanchMethod = lanchMethod;
+            _LaunchMethod = launchMethod;
             _ShutDownMethod = shutDownMethod;
-            _LanchInterval = lanchInterval * 60000;
-            _ErrorTryInterval = errorTryInterval * 60000;
+            _LaunchInterval = launchInterval * 1000;
+            _ErrorTryInterval = errorTryInterval * 1000;
             _MissionStatus = (eMissionStatus)Enum.Parse(typeof(eMissionStatus), missiondstatus, false);
+            _MissionOwnerStatus = ThreadState.Unstarted;
         }
         #endregion --私有构建方法
 
@@ -154,18 +152,6 @@ namespace StrongDispatcherModel
                 return _DllLocation;
             }
         }
-        public bool DllExists
-        {
-            get
-            {
-                return _DllExists;
-            }
-            set
-            {
-                _DllExists = value;
-            }
-        }
-
         public string ClassName
         {
             get
@@ -173,11 +159,11 @@ namespace StrongDispatcherModel
                 return _ClassName;
             }
         }
-        public string LanchMethod
+        public string LaunchMethod
         {
             get
             {
-                return _LanchMethod;
+                return _LaunchMethod;
             }
         }
         public string ShutDownMethod
@@ -187,11 +173,11 @@ namespace StrongDispatcherModel
                 return _ShutDownMethod;
             }
         }
-        public int LanchInterval
+        public int LaunchInterval
         {
             get
             {
-                return _LanchInterval;
+                return _LaunchInterval;
             }
         }
 
@@ -225,9 +211,7 @@ namespace StrongDispatcherModel
             {
                 _NextTryTime = value;
             }
-        }
-
-        
+        }        
 
         /// <summary>
         /// 对应任务处理的线程
@@ -247,7 +231,7 @@ namespace StrongDispatcherModel
         /// <summary>
         /// 对应任务处理线程的状态
         /// </summary>
-        public eTaskStatus MissionOwnerStatus
+        public ThreadState MissionOwnerStatus
         {
             get
             {

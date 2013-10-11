@@ -41,17 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="eMissionStatus.cs" />
-    <Compile Include="eTaskStatus.cs" />
     <Compile Include="eTaskType.cs" />
     <Compile Include="FileTools.cs" />
+    <Compile Include="ITask.cs" />
     <Compile Include="Mission.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XMLTools.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="conf.xml">
-      <SubType>Designer</SubType>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

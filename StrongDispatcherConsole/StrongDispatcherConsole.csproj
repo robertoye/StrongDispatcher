@@ -51,6 +51,14 @@
       <Project>{6653CF58-F3EA-4DE7-B3E9-43E57D5156ED}</Project>
       <Name>StrongDispatcherModel</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Test1\Test1.csproj">
+      <Project>{5537C230-21AA-44CC-A4D7-BECA880B151E}</Project>
+      <Name>Test1</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Test2\Test2.csproj">
+      <Project>{E0B18921-B05B-4E84-8AC0-D5BDB03AEDC0}</Project>
+      <Name>Test2</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="conf.xml">

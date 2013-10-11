@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading; 
 
 namespace Test1
 {
     public class Class1
     {
-        public void Launch()
+        public void Launch1()
         {
-            Console.WriteLine(string.Format("{0}:Test1.Class1 Lanch runing!", DateTime.Now));
+            Console.WriteLine(string.Format("{0}:Launch1 runing!", DateTime.Now));
+            Thread.Sleep(1000 * 11);
         }
     }
 }

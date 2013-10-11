@@ -10,11 +10,10 @@ namespace StrongDispatcherConsole
 {
     class Program
     {
-        private static List<Mission> MissionList;        
-        private static int _ErrorMonitorInterval;
-
+        
         static void Main(string[] args)
         {
+            List<Mission> MissionList;
             //装载配置文件
             try
             {
@@ -24,31 +23,29 @@ namespace StrongDispatcherConsole
                 //读取配置文件
                 MissionList = Mission.LoadConf(ConfName);
 
-                foreach (Mission mi in MissionList)
+                //一次性启动全部普通任务线程
+                List<Mission> miNeedRun = MissionList.FindAll((c) => { return c.TaskType == eTaskType.Normal && c.MissionStatus != eMissionStatus.Stop; });
+                List<Thread> threads = new List<Thread>();
+                foreach (Mission mi in miNeedRun)
                 {
-                    if (mi.TaskType == eTaskType.Daemon)
-                    {
-                        Thread daemonThread = new Thread(delegate()
+                    Thread parameterThread = new Thread(delegate()
                         {
-                            ErrorTryToDo(MissionList,mi.LanchInterval);
+                            ThreadDoLaunch(mi);
                         });
-                        daemonThread.Name = mi.MissionName;
-                        daemonThread.Start();
-                        Console.WriteLine(string.Format("{0}:Daemon Mission '{1}' Startted;", DateTime.Now, mi.MissionName));
-                        mi.MissionOwner = daemonThread;
-                    }
-                    else
-                    {
-                        Thread missionThread = new Thread(delegate()
-                        {
-                            ThreadDo(mi);
-                        });
-                        missionThread.Name = mi.MissionName;
-                        missionThread.Start();
-                        Console.WriteLine(string.Format("{0}:Normal Mission '{1}' Startted;", DateTime.Now, mi.MissionName));
-                        mi.MissionOwner = missionThread;
-                    }
+
+                    parameterThread.Name = mi.MissionName;                    
+                    mi.MissionOwner = parameterThread;
+                    threads.Add(parameterThread);
+                    parameterThread.Start();
+                    Console.WriteLine(string.Format("# {0}: Mission thread {1} runing! ", DateTime.Now, mi.MissionName));
                 }
+
+                //foreach (Thread tt in threads)
+                //{
+                //    tt.Start();
+                //    Console.WriteLine(string.Format("# {0}: Mission thread {1} runing! ", DateTime.Now, tt.Name));
+                //}
+                
             }
             catch (Exception err)
             {
@@ -56,57 +53,48 @@ namespace StrongDispatcherConsole
             }
         }
 
-        private static void ThreadDo(Mission mi)
-        {
-            while (mi.MissionOwnerStatus == eTaskStatus.Sleeping)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mi"></param>         
+        private static void ThreadDoLaunch(Mission mi)
+        {   
+            while(true)
             {
                 try
                 {
-                    mi.MissionOwnerStatus = eTaskStatus.Doing;
-                    InvokeAssemblyMethod(mi, mi.LanchMethod);
-                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Succeed!", DateTime.Now, mi.MissionName,mi.LanchMethod));
-                    mi.MissionOwnerStatus = eTaskStatus.Sleeping;
+                    //mi.MissionOwnerStatus = Thread.CurrentThread.ThreadState;
+                    InvokeAssemblyMethod(mi, mi.LaunchMethod);
+                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Succeed!", DateTime.Now,mi.MissionName,mi.LaunchMethod));
+                    Thread.Sleep(mi.LaunchInterval);
+                    //mi.MissionOwnerStatus = Thread.CurrentThread.ThreadState;
                 }
                 catch (Exception err)
                 {
-                    mi.MissionOwnerStatus = eTaskStatus.Cancel;
                     mi.MissionStatus = eMissionStatus.ErrorHalt;
-
-                    mi.NextTryTime = DateTime.Now.AddMinutes(mi.ErrorTryInterval);
-                    Thread.ResetAbort();
-                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Failure!", DateTime.Now, mi.MissionName, mi.LanchMethod));
+                    //mi.MissionOwnerStatus = Thread.CurrentThread.ThreadState;
+                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Failure!", DateTime.Now, mi.MissionName, mi.LaunchMethod));
+                    Thread.Sleep(mi.ErrorTryInterval);                    
                 }
-                Thread.Sleep(mi.LanchInterval);
             }
-        }
 
+        }
+        /// <summary>
+        /// 反射调用方法
+        /// </summary>
+        /// <param name="cfi"></param>
+        /// <param name="methodName"></param>
         private static void InvokeAssemblyMethod(Mission cfi, string methodName)
         {
             System.Reflection.Assembly ass = System.Reflection.Assembly.LoadFile(cfi.DllLocation);
-            Type type = ass.GetType(cfi.ClassName);//必须使用名称空间+类名称
 
-            System.Reflection.MethodInfo method = type.GetMethod(methodName);//方法的名称
-            Object obj = ass.CreateInstance(cfi.ClassName);//必须使用名称空间+类名称
-
-            string s = (string)method.Invoke(obj, null); //实例方法的调用
-        }
-
-        private static void ErrorTryToDo(List<Mission> miList, int ErrorMonitorInterval)
-        {
-            foreach (Mission mi in miList)
+            lock (ass)
             {
-                if (mi.MissionStatus == eMissionStatus.ErrorHalt && DateTime.Now <= mi.NextTryTime)
-                {
-                    Thread parameterThread = new Thread(delegate()
-                    {
-                        ThreadDo(mi);
-                    });
-                    parameterThread.Name = mi.MissionName;
-                    parameterThread.Start(mi);
-                }
+                Type type = ass.GetType(cfi.ClassName);//必须使用名称空间+类名称
+                System.Reflection.MethodInfo method = type.GetMethod(methodName);//方法的名称
+                Object obj = ass.CreateInstance(cfi.ClassName);//必须使用名称空间+类名称
+                string s = (string)method.Invoke(obj, null); //实例方法的调用           
             }
-
-            Thread.Sleep(ErrorMonitorInterval);
-        }
+        }        
     }
 }
