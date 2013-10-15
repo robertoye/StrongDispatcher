@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace StrongDispatcherModel
+namespace StrongConfigHelper
 {
     /// <summary>
     /// xml文件分析工具
     /// </summary>
-    internal class XMLTools
+    public class XMLHelper
     {
         /// <summary>
         /// 
@@ -18,7 +18,7 @@ namespace StrongDispatcherModel
         /// <param name="nodeName"></param>
         /// <param name="raiseErr"></param>
         /// <returns></returns>
-        internal static XmlNode FindXmlNode(XmlNode node, string nodeName, bool raiseErr)
+        public static XmlNode FindXmlNode(XmlNode node, string nodeName, bool raiseErr)
         {
             XmlNode rt = node.SelectSingleNode(nodeName);
 
@@ -36,7 +36,7 @@ namespace StrongDispatcherModel
         /// <param name="nodeName"></param>
         /// <param name="raiseErr"></param>
         /// <returns></returns>
-        internal static XmlNode FindXmlNode(XmlDocument doc, string nodeName, bool raiseErr)
+        public static XmlNode FindXmlNode(XmlDocument doc, string nodeName, bool raiseErr)
         {
             XmlNode rt = doc.SelectSingleNode(nodeName);
 
@@ -54,7 +54,7 @@ namespace StrongDispatcherModel
         /// <param name="attName"></param>
         /// <param name="raiseErr"></param>
         /// <returns></returns>
-        internal static string GetXmlNodeAttributes(XmlNode node, string attName, bool raiseErr)
+        public static string GetXmlNodeAttributes(XmlNode node, string attName, bool raiseErr)
         {
             string strResult = "";
             XmlAttribute xmlatt = node.Attributes[attName];
@@ -80,10 +80,10 @@ namespace StrongDispatcherModel
         /// <param name="attName"></param>
         /// <param name="raiseErr"></param>
         /// <returns></returns>
-        internal static int GetXmlNodeAttributesToInt(XmlNode node, string attName, bool raiseErr)
+        public static int GetXmlNodeAttributesToInt(XmlNode node, string attName, bool raiseErr)
         {
             int result = 0;
-            string strResult = XMLTools.GetXmlNodeAttributes(node, attName, raiseErr);
+            string strResult = XMLHelper.GetXmlNodeAttributes(node, attName, raiseErr);
             if (raiseErr && !int.TryParse(strResult, out result))
             {
                 throw new Exception(string.Format("配置文件格式错误，找不到属性{0},或者属性{0}不是int格式！", attName));

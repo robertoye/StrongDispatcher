@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{6653CF58-F3EA-4DE7-B3E9-43E57D5156ED}</ProjectGuid>
+    <ProjectGuid>{D48C93C9-A176-43E6-AEAD-E62C9E10BC21}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StrongDispatcherModel</RootNamespace>
-    <AssemblyName>StrongDispatcherModel</AssemblyName>
+    <RootNamespace>StrongBPMTC</RootNamespace>
+    <AssemblyName>StrongBPMTC</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,13 +40,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="eMissionStatus.cs" />
-    <Compile Include="eTaskType.cs" />
-    <Compile Include="ITask.cs" />
-    <Compile Include="Mission.cs" />
+    <Compile Include="TCConf.cs" />
+    <Compile Include="TC.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="TC.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ReadME.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BPMUtility\BPMUtility.csproj">
+      <Project>{43BBA498-6AF2-41AF-9E2B-81E1431821FD}</Project>
+      <Name>BPMUtility</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StrongConfigHelper\StrongConfigHelper.csproj">
       <Project>{BA238214-00A3-45D9-9953-CFFED1F07773}</Project>
       <Name>StrongConfigHelper</Name>

@@ -1,26 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.Linq;
+using System.ServiceProcess;
 using System.Text;
 using System.Threading;
-using System.Reflection;
 
 using log4net;
 
 using StrongDispatcherModel;
 
-namespace StrongDispatcherConsole
+namespace StrongDispatcherWindowsService
 {
-    class Program
-    {   
-        static void Main(string[] args)
+    public partial class DispatcherService : ServiceBase
+    {
+        protected List<Mission> MissionList;
+        public DispatcherService()
+        {
+            InitializeComponent();
+        }
+
+        protected override void OnStart(string[] args)
         {
             log4net.Config.DOMConfigurator.Configure();
             ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
             _logger.Info("started");
-
-            List<Mission> MissionList;
+            
             //装载配置文件
             try
             {
@@ -36,27 +44,31 @@ namespace StrongDispatcherConsole
                 foreach (Mission mi in miNeedRun)
                 {
                     Thread parameterThread = new Thread(delegate()
-                        {
-                            ThreadDoLaunch(mi);
-                        });
+                    {
+                        ThreadDoLaunch(mi);
+                    });
 
-                    parameterThread.Name = mi.MissionName;                    
+                    parameterThread.Name = mi.MissionName;
                     mi.MissionOwner = parameterThread;
                     threads.Add(parameterThread);
                     parameterThread.Start();
-                    Console.WriteLine(string.Format("# {0}: Mission thread {1} runing! ", DateTime.Now, mi.MissionName));
+                    //Console.WriteLine(string.Format("# {0}: Mission thread {1} runing! ", DateTime.Now, mi.MissionName));
                 }
-
-                //foreach (Thread tt in threads)
-                //{
-                //    tt.Start();
-                //    Console.WriteLine(string.Format("# {0}: Mission thread {1} runing! ", DateTime.Now, tt.Name));
-                //}
-                
             }
             catch (Exception err)
             {
                 Console.WriteLine(err.Message);
+            }
+        }
+
+        protected override void OnStop()
+        {
+            foreach (Mission mi in MissionList)
+            {
+                if (mi.MissionOwner != null)
+                {
+                    mi.MissionOwner.Abort();
+                }
             }
         }
 
@@ -65,14 +77,14 @@ namespace StrongDispatcherConsole
         /// </summary>
         /// <param name="mi"></param>         
         private static void ThreadDoLaunch(Mission mi)
-        {   
-            while(true)
+        {
+            while (true)
             {
                 try
                 {
                     //mi.MissionOwnerStatus = Thread.CurrentThread.ThreadState;
                     InvokeAssemblyMethod(mi, mi.LaunchMethod);
-                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Succeed!", DateTime.Now,mi.MissionName,mi.LaunchMethod));
+                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Succeed!", DateTime.Now, mi.MissionName, mi.LaunchMethod));
                     Thread.Sleep(mi.LaunchInterval);
                     //mi.MissionOwnerStatus = Thread.CurrentThread.ThreadState;
                 }
@@ -81,7 +93,7 @@ namespace StrongDispatcherConsole
                     mi.MissionStatus = eMissionStatus.ErrorHalt;
                     //mi.MissionOwnerStatus = Thread.CurrentThread.ThreadState;
                     Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Failure!", DateTime.Now, mi.MissionName, mi.LaunchMethod));
-                    Thread.Sleep(mi.ErrorTryInterval);                    
+                    Thread.Sleep(mi.ErrorTryInterval);
                 }
             }
 
@@ -102,6 +114,6 @@ namespace StrongDispatcherConsole
                 Object obj = ass.CreateInstance(cfi.ClassName);//必须使用名称空间+类名称
                 string s = (string)method.Invoke(obj, null); //实例方法的调用           
             }
-        }        
+        }  
     }
 }

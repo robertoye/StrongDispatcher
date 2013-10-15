@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{6653CF58-F3EA-4DE7-B3E9-43E57D5156ED}</ProjectGuid>
+    <ProjectGuid>{526703ED-ADB1-43FC-B4A6-C427D799850A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StrongDispatcherModel</RootNamespace>
-    <AssemblyName>StrongDispatcherModel</AssemblyName>
+    <RootNamespace>StrongBPMLoseInTrafic</RootNamespace>
+    <AssemblyName>StrongBPMLoseInTrafic</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,13 +40,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="eMissionStatus.cs" />
-    <Compile Include="eTaskType.cs" />
-    <Compile Include="ITask.cs" />
-    <Compile Include="Mission.cs" />
+    <Compile Include="LoseInTrafic.cs" />
+    <Compile Include="LoseInTraficConf.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ReadME.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LoseInTrafic.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BPMUtility\BPMUtility.csproj">
+      <Project>{43BBA498-6AF2-41AF-9E2B-81E1431821FD}</Project>
+      <Name>BPMUtility</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StrongConfigHelper\StrongConfigHelper.csproj">
       <Project>{BA238214-00A3-45D9-9953-CFFED1F07773}</Project>
       <Name>StrongConfigHelper</Name>

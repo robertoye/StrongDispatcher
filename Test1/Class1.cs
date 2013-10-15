@@ -10,7 +10,7 @@ namespace Test1
     {
         public void Launch1()
         {
-            Console.WriteLine(string.Format("{0}:Launch1 runing!", DateTime.Now));
+            //Console.WriteLine(string.Format("{0}:Launch1 runing!", DateTime.Now));
             Thread.Sleep(1000 * 11);
         }
     }

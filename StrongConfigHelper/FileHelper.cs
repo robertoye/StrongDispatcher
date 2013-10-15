@@ -4,16 +4,16 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace StrongDispatcherModel
+namespace StrongConfigHelper
 {
-    internal class FileTools
+    public class FileHelper
     {
         /// <summary>
         /// 判定文件是否存在，先当前目录，后绝对路径，存在的话返回文件全名
         /// </summary>
         /// <param name="filename"></param>
         /// <returns></returns>
-        internal static string DllFileExists(string filename)
+        public static string DllFileExists(string filename)
         {            
             string dir = System.AppDomain.CurrentDomain.BaseDirectory;
             FileInfo dllFile = new FileInfo(string.Format("{0}{1}", dir, filename));
@@ -22,13 +22,11 @@ namespace StrongDispatcherModel
                 dllFile = new FileInfo(filename);
                 if(!dllFile.Exists)
                 {
-                    throw new Exception(string.Format("文件{0}不存在",filename));
+                    throw new Exception(string.Format("目录{0}中，文件{0}不存在", dir,filename));
                 }               
             }            
             return dllFile.FullName;
         }
-
-
         /// <summary>
         /// 检验方法
         /// </summary>
@@ -36,7 +34,7 @@ namespace StrongDispatcherModel
         /// <param name="className"></param>
         /// <param name="methodName"></param>
         /// <returns></returns>
-        internal static string MethodExist(string filename, string className, string methodName)
+        public static string MethodExist(string filename, string className, string methodName)
         {
             string strResult="";
 

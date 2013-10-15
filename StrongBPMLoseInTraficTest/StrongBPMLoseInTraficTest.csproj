@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{6653CF58-F3EA-4DE7-B3E9-43E57D5156ED}</ProjectGuid>
+    <ProjectGuid>{228B1BBE-9542-4D86-9931-C4CD9FEAD2B5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StrongDispatcherModel</RootNamespace>
-    <AssemblyName>StrongDispatcherModel</AssemblyName>
+    <RootNamespace>StrongBPMLoseInTraficTest</RootNamespace>
+    <AssemblyName>StrongBPMLoseInTraficTest</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -40,16 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="eMissionStatus.cs" />
-    <Compile Include="eTaskType.cs" />
-    <Compile Include="ITask.cs" />
-    <Compile Include="Mission.cs" />
+    <Compile Include="LoseInTraficConfTest.cs" />
+    <Compile Include="LoseInTraficTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StrongConfigHelper\StrongConfigHelper.csproj">
-      <Project>{BA238214-00A3-45D9-9953-CFFED1F07773}</Project>
-      <Name>StrongConfigHelper</Name>
+    <ProjectReference Include="..\StrongBPMLoseInTrafic\StrongBPMLoseInTrafic.csproj">
+      <Project>{526703ED-ADB1-43FC-B4A6-C427D799850A}</Project>
+      <Name>StrongBPMLoseInTrafic</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

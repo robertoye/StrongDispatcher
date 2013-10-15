@@ -11,7 +11,7 @@ namespace Test2
     {
         public void Launch2()
         {
-            Console.WriteLine(string.Format("{0}: Launch2 runing!", DateTime.Now));
+            //Console.WriteLine(string.Format("{0}: Launch2 runing!", DateTime.Now));
         }
     }
 }

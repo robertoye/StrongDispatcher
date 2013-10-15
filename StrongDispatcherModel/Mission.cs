@@ -12,6 +12,8 @@ using System.Text;
 using System.Xml;
 using System.Threading;
 
+using StrongConfigHelper;
+
 namespace StrongDispatcherModel
 {
     /// <summary>
@@ -36,20 +38,20 @@ namespace StrongDispatcherModel
             try
             {
                 doc.Load(strConfFileName);
-                XmlNode rt = XMLTools.FindXmlNode(doc, "conf", true);                
-                string runningStatus = XMLTools.GetXmlNodeAttributes(rt, "runingstatus", true);
-                XmlNode runningNode = XMLTools.FindXmlNode(rt, runningStatus, true);
+                XmlNode rt = XMLHelper.FindXmlNode(doc, "conf", true);                
+                string runningStatus = XMLHelper.GetXmlNodeAttributes(rt, "runingstatus", true);
+                XmlNode runningNode = XMLHelper.FindXmlNode(rt, runningStatus, true);
 
                 //守护线程 --守护线程功能取消
                 //守护线程错误重启时间间隔
-                //int errormonitorinterval = XMLTools.GetXmlNodeAttributesToInt(runningNode, "errormonitorinterval", true);
+                //int errormonitorinterval = XMLHelper.GetXmlNodeAttributesToInt(runningNode, "errormonitorinterval", true);
                 //Mission daemon = new Mission(eTaskType.Daemon, "Daemon", "", "", "", "", errormonitorinterval * 1000, 0, eMissionStatus.Running);                
                 //_list.Add(daemon);
 
                 XmlNodeList missionNode = runningNode.ChildNodes;
                 foreach (XmlNode node in missionNode)
                 {
-                    string missionName = XMLTools.GetXmlNodeAttributes(node, "name", true);
+                    string missionName = XMLHelper.GetXmlNodeAttributes(node, "name", true);
                     //判定是否有重名应用,重名应用选取
                     if (!_list.Exists((c) => { return c.MissionName == missionName; }))
                     {
@@ -108,13 +110,13 @@ namespace StrongDispatcherModel
         /// <returns></returns>
         private Mission(XmlNode node, string missionName)
         {
-            string location = XMLTools.GetXmlNodeAttributes(node, "location", true);
-            string className = XMLTools.GetXmlNodeAttributes(node, "classname", true);
-            string launchMethod = XMLTools.GetXmlNodeAttributes(node, "launchmethod", true);
-            string shutDownMethod = XMLTools.GetXmlNodeAttributes(node, "shutdownmethod", true);
-            int launchInterval = XMLTools.GetXmlNodeAttributesToInt(node, "launchinterval", true);
-            int errorTryInterval = XMLTools.GetXmlNodeAttributesToInt(node, "errortryinterval", true);
-            string missiondstatus = XMLTools.GetXmlNodeAttributes(node, "missionstatus", false);
+            string location = XMLHelper.GetXmlNodeAttributes(node, "location", true);
+            string className = XMLHelper.GetXmlNodeAttributes(node, "classname", true);
+            string launchMethod = XMLHelper.GetXmlNodeAttributes(node, "launchmethod", true);
+            string shutDownMethod = XMLHelper.GetXmlNodeAttributes(node, "shutdownmethod", true);
+            int launchInterval = XMLHelper.GetXmlNodeAttributesToInt(node, "launchinterval", true);
+            int errorTryInterval = XMLHelper.GetXmlNodeAttributesToInt(node, "errortryinterval", true);
+            string missiondstatus = XMLHelper.GetXmlNodeAttributes(node, "missionstatus", false);
 
             _TaskType = eTaskType.Normal;
             _MissionName = missionName;
