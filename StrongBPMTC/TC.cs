@@ -23,6 +23,9 @@ namespace StrongBPMTC
 {
     public class TC
     {
+        protected static log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);        
+        protected static string _proccessName = "特采";
+        protected static string _billTypeName = "特采申请单";
         /// <summary>
         /// 发起流程方法
         /// </summary>
@@ -31,17 +34,17 @@ namespace StrongBPMTC
             string ConfName = string.Format(@"{0}\{1}", System.AppDomain.CurrentDomain.BaseDirectory, "TC.xml");
             //读取配置文件
             TCConf conf = TCConf.LoadConf(ConfName);
-
             //获取数据源，如果不需要发起，直接退出，避免后面的尝试连接程序性能消耗
-            DataTable table = GetDataSource(conf.ERPConnString);
-            if (table.Rows.Count == 0)
+            DataSet ds = GetDataSource(conf.ERPConnString);            
+            
+            if (ds.Tables[0].Rows.Count == 0)
             {
                 return;
             }
 
             try
             {
-                foreach (DataRow row in table.Rows)
+                foreach (DataRow row in ds.Tables[0].Rows)
                 {
                     if (row["ReqFlowId"].ToString() == "2")
                     {
@@ -69,22 +72,23 @@ namespace StrongBPMTC
 
                         BPMHelper bpm = new BPMHelper(conf.BPMServer, UID,"");
                         bpm._tag = new GeneratePostXML(TCXML);
-
-                        string result = bpm.StartProcess(pName, row);
+                        int pId = int.Parse(row["ID"].ToString());
+                        string result = bpm.StartProcess(pName, ds,pId);
                         //此处需将信息记录到日志中
-
+                        _log.Info(String.Format("{0}{1}发起流程成功；流程发起返回信息{2}", pName,pId, result));
                         row["OAflowID"] = 3;;
                     }
                 }
             }
             catch (Exception err)
             {
+                _log.Info(err);
                 throw new Exception(err.Message);
             }
             finally
             {
                 //对已启动的流程设置已触发标记
-                FinalDo(conf.ERPConnString, table);
+                FinalDo(conf.ERPConnString, ds);
             }
         }
 
@@ -92,34 +96,28 @@ namespace StrongBPMTC
         /// 获取发起流程源数据
         /// </summary>
         /// <returns></returns>
-        private static DataTable GetDataSource(string strConn)
+        private static DataSet GetDataSource(string strConn)
         {
-            DataTable table = new DataTable();
-            using (SqlConnection cn = new SqlConnection(strConn))
+            DataSet ds = new DataSet();
+            try
             {
-                cn.Open();
-
-                SqlCommand cmd = new SqlCommand();
-                cmd.Connection = cn;
-
-                cmd.CommandText = "SELECT * FROM OA_QcResult_Info WHERE OAFlowID=2 and InOaProc = 0";
-
-                using (IDataReader reader = cmd.ExecuteReader())
-                {
-                    table.Load(reader);
-                }
-
+                string strSql = "SELECT * FROM OA_QcResult_Info WHERE OAFlowID=2 and InOaProc = 0";
+                DataTable table = SQLHelper.GetDataTable(strConn, strSql,"Main");
                 foreach (DataRow row in table.Rows)
                 {
-                    SqlCommand cmd2 = new SqlCommand();
-                    cmd2.Connection = cn;
-                    cmd2.CommandText = string.Format("UPDATE OA_QcResult_Info SET InOaProc=1 WHERE ID={0}", row["ID"].ToString());
-
-                    cmd2.ExecuteNonQuery();
+                    string sql = string.Format("UPDATE OA_QcResult_Info SET InOaProc=1 WHERE ID={0}", row["ID"].ToString());
+                    SQLHelper.ExecuteSql(strConn, sql, false);
                 }
-
+                //设置主键
+                table.PrimaryKey = new DataColumn[] { table.Columns["ID"] };                
+                ds.Tables.Add(table);
             }
-            return table;
+            catch (Exception err)
+            {
+                _log.Error(err);
+                throw (err);
+            }
+            return ds;
         }
         /// <summary>
         /// 将提交数据转化为MemoryStream
@@ -128,23 +126,10 @@ namespace StrongBPMTC
         /// <param name="memberPosition"></param>
         /// <param name="row"></param>
         /// <returns></returns>
-        private static MemoryStream TCXML(string processName, string memberPosition, DataRow row)
+        private static MemoryStream TCXML(string processName, string memberPosition, DataSet ds,int pId)
         {
-            //设置Header
-            DataTable tableHeader = new DataTable("Header");
-            tableHeader.Columns.Add(new DataColumn("Method", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("ProcessName", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("Action", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("OwnerMemberFullName", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("UploadFileGuid", typeof(string)));
-            DataRow rowHeader = tableHeader.NewRow();
-
-            //设置Header数据
-            rowHeader["Method"] = "Post";
-            rowHeader["ProcessName"] = processName;
-            rowHeader["Action"] = "提交";
-            rowHeader["OwnerMemberFullName"] = memberPosition;
-            tableHeader.Rows.Add(rowHeader);
+            DataRow row = ds.Tables[0].Rows.Find(pId);
+            DataTable tableHeader = BPMHelper.SetBPMTaskHeader(processName, "提交", memberPosition);
 
             //设置表单BillHeader数据
             DataSet formDataSet = new DataSet("FormData");
@@ -184,66 +169,27 @@ namespace StrongBPMTC
             row1["int21"] = row["B1QcResultID"];
             row1["str20"] = row["Organizing"];
             row1["str22"] = row["JYDomainAccount"];
-
             table1.Rows.Add(row1);
-
             formDataSet.Tables.Add(table1);
 
-
-            //生成XML
-            StringBuilder sb = new StringBuilder();
-            StringWriter w = new StringWriter(sb);
-
-            w.WriteLine("<?xml version=\"1.0\"?>");
-            w.WriteLine("<XForm>");
-            tableHeader.WriteXml(w, XmlWriteMode.IgnoreSchema, false);
-            formDataSet.WriteXml(w);
-            w.WriteLine("</XForm>");
-
-            w.Close();
-
-            String xmlData = sb.ToString();
-            xmlData = xmlData.Replace("<DocumentElement>", "");
-            xmlData = xmlData.Replace("</DocumentElement>", "");
-
-            MemoryStream xmlStream = new MemoryStream(UTF8Encoding.UTF8.GetBytes(xmlData));
-
-            return xmlStream;
+            return BPMHelper.ConvertLanchDataToStream(tableHeader, formDataSet);
         }
         /// <summary>
         /// 完成发起后修改源状态
         /// </summary>
         /// <param name="table"></param>
-        private static void FinalDo(string strConn, DataTable table)
-        {
-            if (table.Rows.Count == 0)
+        private static void FinalDo(string strConn, DataSet ds)
+        {            
+            //设置标志
+            foreach (DataRow row in ds.Tables[0].Rows)
             {
-                return;
-            }
-            using (SqlConnection cn = new SqlConnection(strConn))
-            {
-                cn.Open();
-                //设置标志
-                foreach (DataRow row in table.Rows)
+                string sql = string.Format("UPDATE OA_QcResult_Info SET InOaProc=0 WHERE ID={0} and OAFlowID=2", row["ID"].ToString());
+                if (Convert.ToInt32(row["OAFlowID"]) == 3)
                 {
-                    if (Convert.ToInt32(row["OAFlowID"]) == 3)
-                    {
-                        SqlCommand cmd = new SqlCommand();
-                        cmd.Connection = cn;
-                        cmd.CommandText = "UPDATE OA_QcResult_Info SET OAFlowID=3 WHERE ID=@ID and OAFlowID=2";
-                        cmd.Parameters.Add("@ID", SqlDbType.NVarChar).Value = row["ID"];
-                        cmd.ExecuteNonQuery();
-                    }
-                    else
-                    {
-                        SqlCommand cmd = new SqlCommand();
-                        cmd.Connection = cn;
-                        cmd.CommandText = "UPDATE OA_QcResult_Info SET InOaProc=0 WHERE ID=@ID and OAFlowID=2";
-                        cmd.Parameters.Add("@ID", SqlDbType.NVarChar).Value = row["ID"];
-                        cmd.ExecuteNonQuery();
-                    }
+                    sql = string.Format("UPDATE OA_QcResult_Info SET OAFlowID=3 WHERE ID={0} and OAFlowID=2", row["ID"].ToString());
                 }
-            }
+                SQLHelper.ExecuteSql(strConn,sql,false);
+            }            
         }
     }
 }

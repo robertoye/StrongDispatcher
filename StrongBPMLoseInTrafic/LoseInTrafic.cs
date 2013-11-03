@@ -23,6 +23,7 @@ namespace StrongBPMLoseInTrafic
 {
     public class LoseInTrafic
     {
+        protected static log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         /// <summary>
         /// 发起流程方法
         /// </summary>
@@ -33,8 +34,8 @@ namespace StrongBPMLoseInTrafic
             LoseInTraficConf conf = LoseInTraficConf.LoadConf(ConfName);
 
             //获取数据源，如果不需要发起，直接退出，避免后面的尝试连接程序性能消耗
-            DataTable table = GetDataSource(conf.ERPConnString);            
-            if (table.Rows.Count == 0)
+            DataSet ds = GetDataSource(conf.ERPConnString);            
+            if (ds.Tables[0].Rows.Count == 0)
             {
                 return;
             }
@@ -44,13 +45,12 @@ namespace StrongBPMLoseInTrafic
                 BPMHelper bpm = new BPMHelper(conf.BPMServer, conf.UserAccount,conf.PWD);
                 bpm._tag = new GeneratePostXML(LoseInTraficXML);
 
-                foreach (DataRow row in table.Rows)
+                foreach (DataRow row in ds.Tables[0].Rows)
                 {
                     if (row["ReqFlowId"].ToString() == "2")
                     {
-                        string result = bpm.StartProcess("中心仓途损申请", row);
+                        string result = bpm.StartProcess("中心仓途损申请", ds,int.Parse(row["ID"].ToString()));
                         //此处需将信息记录到日志中
-
                         row["ReqFlowId"] = 6;
                     }
                 }
@@ -62,39 +62,26 @@ namespace StrongBPMLoseInTrafic
             finally
             {
                 //对已启动的流程设置已触发标记
-                FinalDo(conf.ERPConnString,table);
+                FinalDo(conf.ERPConnString,ds);
             }
         }
         /// <summary>
         /// 获取发起流程源数据
         /// </summary>
         /// <returns></returns>
-        private static DataTable GetDataSource(string strConn)
+        private static DataSet GetDataSource(string strConn)
         {
-            DataTable table = new DataTable();
-            using (SqlConnection cn = new SqlConnection(strConn))
+            string strSql = "execute dbo.WebGetMoutreqWaitToOA";
+            DataTable table = SQLHelper.GetDataTable(strConn,strSql,"Main");
+            
+            foreach (DataRow row in table.Rows)
             {
-                cn.Open();
-
-                SqlCommand cmd = new SqlCommand();
-                cmd.Connection = cn;
-                cmd.CommandText = "execute dbo.WebGetMoutreqWaitToOA";
-
-                using (IDataReader reader = cmd.ExecuteReader())
-                {
-                    table.Load(reader);
-                }
-
-                foreach (DataRow row in table.Rows)
-                {
-                    SqlCommand cmd2 = new SqlCommand();
-                    cmd2.Connection = cn;
-                    cmd2.CommandText = string.Format("UPDATE MoutReqM SET ReqFlowId=5 WHERE ReqFlowId=2 and ID={0}", row["ID"].ToString());
-
-                    cmd2.ExecuteNonQuery();
-                }
+                string sql = string.Format("UPDATE MoutReqM SET ReqFlowId=5 WHERE ReqFlowId=2 and ID={0}", row["ID"].ToString());
+                SQLHelper.ExecuteSql(strConn, sql, false);
             }
-            return table;
+            DataSet ds = new DataSet();
+            ds.Tables.Add(table);
+            return ds;
         }
 
         /// <summary>
@@ -104,23 +91,10 @@ namespace StrongBPMLoseInTrafic
         /// <param name="memberPosition"></param>
         /// <param name="row"></param>
         /// <returns></returns>
-        private static MemoryStream LoseInTraficXML(string processName, string memberPosition, DataRow row)
+        private static MemoryStream LoseInTraficXML(string processName, string memberPosition, DataSet ds,int pId)
         {
-            //设置Header
-            DataTable tableHeader = new DataTable("Header");
-            tableHeader.Columns.Add(new DataColumn("Method", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("ProcessName", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("Action", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("OwnerMemberFullName", typeof(string)));
-            tableHeader.Columns.Add(new DataColumn("UploadFileGuid", typeof(string)));
-            DataRow rowHeader = tableHeader.NewRow();
-
-            //设置Header数据
-            rowHeader["Method"] = "Post";
-            rowHeader["ProcessName"] = processName;
-            rowHeader["Action"] = "提交";
-            rowHeader["OwnerMemberFullName"] = memberPosition;
-            tableHeader.Rows.Add(rowHeader);
+            DataRow row = ds.Tables[0].Rows.Find(pId);
+            DataTable tableHeader = BPMHelper.SetBPMTaskHeader(processName, "提交", memberPosition);
 
             //设置表单BillHeader数据
             DataSet formDataSet = new DataSet("FormData");
@@ -152,60 +126,24 @@ namespace StrongBPMLoseInTrafic
             table1.Rows.Add(row1);
             formDataSet.Tables.Add(table1);
 
-            //生成XML
-            StringBuilder sb = new StringBuilder();
-            StringWriter w = new StringWriter(sb);
-
-            w.WriteLine("<?xml version=\"1.0\"?>");
-            w.WriteLine("<XForm>");
-            tableHeader.WriteXml(w, XmlWriteMode.IgnoreSchema, false);
-            formDataSet.WriteXml(w);
-            w.WriteLine("</XForm>");
-
-            w.Close();
-
-            String xmlData = sb.ToString();
-            xmlData = xmlData.Replace("<DocumentElement>", "");
-            xmlData = xmlData.Replace("</DocumentElement>", "");
-
-            MemoryStream xmlStream = new MemoryStream(UTF8Encoding.UTF8.GetBytes(xmlData));
-
-            return xmlStream;
+            return BPMHelper.ConvertLanchDataToStream(tableHeader, formDataSet);
         }
         
         /// <summary>
         /// 完成发起后修改源状态
         /// </summary>
         /// <param name="table"></param>
-        private static void FinalDo(string strConn,DataTable table)
-        {
-            if (table.Rows.Count == 0)
+        private static void FinalDo(string strConn,DataSet ds)
+        {            
+            //设置标志
+            foreach (DataRow row in ds.Tables[0].Rows)
             {
-                return;
-            }
-            using (SqlConnection cn = new SqlConnection(strConn))
-            {
-                cn.Open();
-                //设置标志
-                foreach (DataRow row in table.Rows)
+                string sql = string.Format("UPDATE MoutReqM SET ReqFlowId=2 WHERE ID={0} and ReqFlowId=5",row["ID"].ToString());
+                if (Convert.ToInt32(row["ReqFlowId"]) == 6)
                 {
-                    if (Convert.ToInt32(row["ReqFlowId"]) == 6)
-                    {
-                        SqlCommand cmd = new SqlCommand();
-                        cmd.Connection = cn;
-                        cmd.CommandText = "UPDATE MoutReqM SET ReqFlowId=6 WHERE ID=@ID and ReqFlowId=5";
-                        cmd.Parameters.Add("@ID", SqlDbType.NVarChar).Value = row["ID"];
-                        cmd.ExecuteNonQuery();
-                    }
-                    else
-                    {
-                        SqlCommand cmd = new SqlCommand();
-                        cmd.Connection = cn;
-                        cmd.CommandText = "UPDATE MoutReqM SET ReqFlowId=2 WHERE ID=@ID and ReqFlowId=5";
-                        cmd.Parameters.Add("@ID", SqlDbType.NVarChar).Value = row["ID"];
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+                    sql = string.Format("UPDATE MoutReqM SET ReqFlowId=6 WHERE ID={0} and ReqFlowId=5", row["ID"].ToString());                        
+                }       
+                SQLHelper.ExecuteSql(strConn, sql, false);             
             }
         }
     }

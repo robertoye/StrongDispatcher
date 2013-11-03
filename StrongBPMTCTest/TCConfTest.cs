@@ -14,6 +14,7 @@ namespace StrongBPMTCTest
         [Test]
         public void LoadConf()
         {
+            //测试文件
             TCConf conf = TCConf.LoadConf(@"D:\WorkShop\GitHub\StrongDispatcher\StrongBPMTC\TC.xml");
 
             Assert.AreEqual(conf.RuningStatus.ToLower(), "test");

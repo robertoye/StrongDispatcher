@@ -12,13 +12,17 @@ using StrongDispatcherModel;
 namespace StrongDispatcherConsole
 {
     class Program
-    {   
+    {
+        protected static log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         static void Main(string[] args)
         {
-            log4net.Config.DOMConfigurator.Configure();
-            ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+            //string logConf = string.Format(@"{0}{1}", System.AppDomain.CurrentDomain.BaseDirectory, "StrongDispatcherConsole.exe.config");
+            //log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(logConf));
+            log4net.Config.XmlConfigurator.Configure();
+            
             _logger.Info("started");
+            _logger.Error("started");
 
             List<Mission> MissionList;
             //装载配置文件
@@ -26,9 +30,10 @@ namespace StrongDispatcherConsole
             {
                 //MessageBox.Show(System.AppDomain.CurrentDomain.BaseDirectory);
                 //读取配置文件
-                string ConfName = string.Format(@"{0}{1}", System.AppDomain.CurrentDomain.BaseDirectory, "conf.xml");
+                string ConfName = string.Format(@"{0}{1}", System.AppDomain.CurrentDomain.BaseDirectory, "conf.xml");                
                 //读取配置文件
                 MissionList = Mission.LoadConf(ConfName);
+                _logger.Info("读取配置文件conf.xml成功！");
 
                 //一次性启动全部普通任务线程
                 List<Mission> miNeedRun = MissionList.FindAll((c) => { return c.TaskType == eTaskType.Normal && c.MissionStatus != eMissionStatus.Stop; });
@@ -57,6 +62,7 @@ namespace StrongDispatcherConsole
             catch (Exception err)
             {
                 Console.WriteLine(err.Message);
+                _logger.Error(err);                
             }
         }
 
@@ -80,8 +86,9 @@ namespace StrongDispatcherConsole
                 {
                     mi.MissionStatus = eMissionStatus.ErrorHalt;
                     //mi.MissionOwnerStatus = Thread.CurrentThread.ThreadState;
-                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Failure!", DateTime.Now, mi.MissionName, mi.LaunchMethod));
-                    Thread.Sleep(mi.ErrorTryInterval);                    
+                    Console.WriteLine(string.Format("{0}:Normal Mission {1} Call Methord {2} Failure!Error Msg:{3}", DateTime.Now, mi.MissionName, mi.LaunchMethod,err.Message));
+                    Thread.Sleep(mi.ErrorTryInterval);
+                    //throw (err);
                 }
             }
 

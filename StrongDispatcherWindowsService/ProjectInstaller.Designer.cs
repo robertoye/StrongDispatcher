@@ -39,8 +39,9 @@
             // 
             // serviceInstaller1
             // 
-            this.serviceInstaller1.ServiceName = "AAAAAAAAAAAAAAA";
-            this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
+            this.serviceInstaller1.Description = "任务调出器，主要是为工作流发起使用";
+            this.serviceInstaller1.DisplayName = "任务调度器";
+            this.serviceInstaller1.ServiceName = "DispatcherService";
             // 
             // ProjectInstaller
             // 

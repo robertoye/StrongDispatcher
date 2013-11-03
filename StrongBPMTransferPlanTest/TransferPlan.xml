@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  runingstatus ：运行状态
+
+  BPMServer:工作流服务器地址
+  ERP ：ERP数据源
+  -->
+<conf runingstatus="test">
+  <running>
+    <BPMServer Name="oa-bpm" UserAccount="OAadmin" PWD="******" />
+    <ERP ConnString="Data Source=sz-sql;Initial Catalog=SerpII;User ID=WebSerpii;Password=******"/>
+  </running>
+  <test>
+    <BPMServer Name="oa-test" UserAccount="OAadmin" PWD="" />
+    <ERP ConnString="Data Source=172.17.0.219;Initial Catalog=serp4;User ID=serpII_admin;Password=strong2011"/>
+  </test>
+</conf>

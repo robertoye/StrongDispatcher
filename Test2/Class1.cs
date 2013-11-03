@@ -9,9 +9,10 @@ namespace Test2
 {
     public class Class2
     {
+        protected static log4net.ILog _log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);        
         public void Launch2()
         {
-            //Console.WriteLine(string.Format("{0}: Launch2 runing!", DateTime.Now));
+            _log.Info("Test2.CLass2.Launch2 执行成功！");
         }
     }
 }

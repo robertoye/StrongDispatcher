@@ -7,8 +7,7 @@ using System.Threading;
 namespace StrongDispatcherModel
 {
     interface ITask
-    {
-        
+    {        
         void Launch();
         void ShutDown();
     }

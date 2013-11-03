@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VisualState xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ShowCheckBoxes="false">
+  <TopNode>[0-1000]D:\WorkShop\GitHub\StrongDispatcher\StrongDispatcher.sln</TopNode>
+  <SelectedNode>[0-1000]D:\WorkShop\GitHub\StrongDispatcher\StrongDispatcher.sln</SelectedNode>
+  <ExcludeCategories>false</ExcludeCategories>
+  <Nodes>
+    <Node UniqueName="[0-1014]D:\WorkShop\GitHub\StrongDispatcher\StrongBPMLoseInTraficTest\bin\Debug\StrongBPMLoseInTraficTest.dll" Expanded="true" />
+    <Node UniqueName="[0-1015]StrongBPMLoseInTraficTest" Expanded="true" />
+    <Node UniqueName="[0-1010]StrongBPMLoseInTraficTest.LoseInTraficConfTest" Expanded="true" />
+    <Node UniqueName="[0-1012]StrongBPMLoseInTraficTest.LoseInTraficTest" Expanded="true" />
+    <Node UniqueName="[0-1019]D:\WorkShop\GitHub\StrongDispatcher\StrongBPMTCTest\bin\Debug\StrongBPMTCTest.dll" Expanded="true" />
+    <Node UniqueName="[0-1020]StrongBPMTCTest" Expanded="true" />
+    <Node UniqueName="[0-1016]StrongBPMTCTest.TCConfTest" Expanded="true" />
+  </Nodes>
+</VisualState>

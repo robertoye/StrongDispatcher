@@ -30,31 +30,31 @@ namespace StrongBPMLoseInTrafic
             {
                 return _conf;
             }
-            LoseInTraficConf conf = new LoseInTraficConf(); 
+            _conf = new LoseInTraficConf(); 
             
             XmlDocument doc = new XmlDocument();
             try
             {
                 doc.Load(strConfFileName);
                 XmlNode rt = XMLHelper.FindXmlNode(doc, "conf", true);
-                conf.RuningStatus = XMLHelper.GetXmlNodeAttributes(rt, "runingstatus", true);
+                _conf.RuningStatus = XMLHelper.GetXmlNodeAttributes(rt, "runingstatus", true);
 
-                XmlNode runningNode = XMLHelper.FindXmlNode(rt, conf.RuningStatus, true);
+                XmlNode runningNode = XMLHelper.FindXmlNode(rt, _conf.RuningStatus, true);
                 XmlNode bpmNode = XMLHelper.FindXmlNode(runningNode, "BPMServer", true);
                 XmlNode erpNode = XMLHelper.FindXmlNode(runningNode, "ERP", true);
 
-                conf.BPMServer = XMLHelper.GetXmlNodeAttributes(bpmNode, "Name", true);
-                conf.UserAccount =XMLHelper.GetXmlNodeAttributes(bpmNode, "UserAccount", true);
-                conf.PWD =XMLHelper.GetXmlNodeAttributes(bpmNode, "PWD", true);
+                _conf.BPMServer = XMLHelper.GetXmlNodeAttributes(bpmNode, "Name", true);
+                _conf.UserAccount =XMLHelper.GetXmlNodeAttributes(bpmNode, "UserAccount", true);
+                _conf.PWD =XMLHelper.GetXmlNodeAttributes(bpmNode, "PWD", true);
 
-                conf.ERPConnString = XMLHelper.GetXmlNodeAttributes(erpNode, "ConnString", true);
+                _conf.ERPConnString = XMLHelper.GetXmlNodeAttributes(erpNode, "ConnString", true);
             }
             catch (Exception err)
             {
                 throw new Exception(err.Message);
             }
 
-            return conf;
+            return _conf;
         }
     }
 }
